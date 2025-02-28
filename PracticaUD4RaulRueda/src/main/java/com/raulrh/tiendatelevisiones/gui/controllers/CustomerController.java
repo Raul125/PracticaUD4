@@ -2,12 +2,18 @@ package com.raulrh.tiendatelevisiones.gui.controllers;
 
 import com.raulrh.tiendatelevisiones.base.Controller;
 import com.raulrh.tiendatelevisiones.entities.Customer;
+import com.raulrh.tiendatelevisiones.entities.Supplier;
+import com.raulrh.tiendatelevisiones.gui.dialogs.SaleDialog;
 import com.raulrh.tiendatelevisiones.gui.models.CustomerTableModel;
+import com.raulrh.tiendatelevisiones.gui.models.SupplierTableModel;
 import com.raulrh.tiendatelevisiones.util.Preferences;
 import com.raulrh.tiendatelevisiones.util.Util;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.util.List;
 
 /**
  * Controller class for managing customer-related actions such as adding, modifying, deleting,
@@ -111,6 +117,39 @@ public class CustomerController extends Controller {
             clearFields();
             mainController.salesController.refreshTable();
         });
+
+        mainController.view.searchClient.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            private void filterTelevisions() {
+                String searchText = mainController.view.searchClient.getText().trim().toLowerCase();
+                List<Customer> allCustomers = mainController.model.getCustomers();
+                List<Customer> filteredCustomers;
+
+                if (searchText.isEmpty()) {
+                    filteredCustomers = allCustomers;
+                } else {
+                    filteredCustomers = allCustomers.stream()
+                            .filter(customer -> customer.getEmail().toLowerCase().contains(searchText)).toList();
+                }
+
+                customerTableModel = new CustomerTableModel(filteredCustomers);
+                mainController.view.customersTable.setModel(customerTableModel);
+            }
+        });
     }
 
     /**
@@ -130,6 +169,25 @@ public class CustomerController extends Controller {
                 fillFields(row);
             } else {
                 clearFields();
+            }
+        });
+
+        mainController.view.customersTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (!mainController.isConnected) {
+                    return;
+                }
+
+                if (evt.getClickCount() == 2) {
+                    JTable table = (JTable) evt.getSource();
+                    int row = table.getSelectedRow();
+                    if (row != -1) {
+                        Customer customer = customerTableModel.getCustomer(row);
+                        SaleDialog saleDialog = new SaleDialog(mainController.view, customer, mainController.model);
+                        saleDialog.setVisible(true);
+                    }
+                }
             }
         });
     }

@@ -2,12 +2,16 @@ package com.raulrh.tiendatelevisiones.gui.controllers;
 
 import com.raulrh.tiendatelevisiones.base.Controller;
 import com.raulrh.tiendatelevisiones.entities.Television;
+import com.raulrh.tiendatelevisiones.gui.dialogs.SaleStockDialog;
 import com.raulrh.tiendatelevisiones.gui.models.TelevisionTableModel;
 import com.raulrh.tiendatelevisiones.util.Preferences;
 import com.raulrh.tiendatelevisiones.util.Util;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.util.List;
 
 /**
  * Controller class responsible for managing televisions within the application.
@@ -112,6 +116,39 @@ public class TelevisionController extends Controller {
             mainController.stockController.refreshTable();
             mainController.salesController.refreshTable();
         });
+
+        mainController.view.searchTv.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            private void filterTelevisions() {
+                String searchText = mainController.view.searchTv.getText().trim().toLowerCase();
+                List<Television> allTelevisions = mainController.model.getTelevisions();
+                List<Television> filteredTelevisions;
+
+                if (searchText.isEmpty()) {
+                    filteredTelevisions = allTelevisions;
+                } else {
+                    filteredTelevisions = allTelevisions.stream()
+                            .filter(tv -> tv.getBrand().toLowerCase().contains(searchText)).toList();
+                }
+
+                televisionTableModel = new TelevisionTableModel(filteredTelevisions);
+                mainController.view.televisionsTable.setModel(televisionTableModel);
+            }
+        });
     }
 
     /**
@@ -130,6 +167,25 @@ public class TelevisionController extends Controller {
                 fillFields(row);
             } else {
                 clearFields();
+            }
+        });
+
+        mainController.view.televisionsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (!mainController.isConnected) {
+                    return;
+                }
+
+                if (evt.getClickCount() == 2) {
+                    JTable table = (JTable) evt.getSource();
+                    int row = table.getSelectedRow();
+                    if (row != -1) {
+                        Television television = televisionTableModel.getTelevision(row);
+                        SaleStockDialog saleStockDialog = new SaleStockDialog(mainController.view, television, mainController.model);
+                        saleStockDialog.setVisible(true);
+                    }
+                }
             }
         });
     }

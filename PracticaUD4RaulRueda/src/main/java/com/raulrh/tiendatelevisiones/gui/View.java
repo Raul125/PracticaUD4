@@ -91,6 +91,11 @@ public class View extends JFrame {
     // Panels
     private JPanel mainPanel;
 
+    // Search
+    public JTextField searchTv;
+    public JTextField searchClient;
+    public JTextField searchSupplier;
+
     /**
      * Constructs the main window of the application.
      */

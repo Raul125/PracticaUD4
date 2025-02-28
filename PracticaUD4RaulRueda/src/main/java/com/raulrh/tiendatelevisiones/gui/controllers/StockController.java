@@ -5,12 +5,16 @@ import com.raulrh.tiendatelevisiones.entities.Stock;
 import com.raulrh.tiendatelevisiones.entities.Supplier;
 import com.raulrh.tiendatelevisiones.entities.Television;
 import com.raulrh.tiendatelevisiones.gui.models.StockTableModel;
+import com.raulrh.tiendatelevisiones.gui.models.SupplierTableModel;
 import com.raulrh.tiendatelevisiones.util.Preferences;
 import com.raulrh.tiendatelevisiones.util.Util;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Controller class responsible for managing the stock-related actions and interactions in the GUI.

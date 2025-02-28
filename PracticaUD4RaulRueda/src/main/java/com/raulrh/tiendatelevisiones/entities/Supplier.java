@@ -2,9 +2,6 @@ package com.raulrh.tiendatelevisiones.entities;
 
 import org.bson.types.ObjectId;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class Supplier {
     private ObjectId id;  // Will map to "_id" in MongoDB
     private String name;

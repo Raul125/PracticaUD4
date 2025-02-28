@@ -3,8 +3,6 @@ package com.raulrh.tiendatelevisiones.entities;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class Television {
     private ObjectId id;  // Will map to "_id" in MongoDB

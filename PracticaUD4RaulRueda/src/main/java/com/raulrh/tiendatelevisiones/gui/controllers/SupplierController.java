@@ -2,12 +2,18 @@ package com.raulrh.tiendatelevisiones.gui.controllers;
 
 import com.raulrh.tiendatelevisiones.base.Controller;
 import com.raulrh.tiendatelevisiones.entities.Supplier;
+import com.raulrh.tiendatelevisiones.entities.Television;
+import com.raulrh.tiendatelevisiones.gui.dialogs.StockDialog;
 import com.raulrh.tiendatelevisiones.gui.models.SupplierTableModel;
+import com.raulrh.tiendatelevisiones.gui.models.TelevisionTableModel;
 import com.raulrh.tiendatelevisiones.util.Preferences;
 import com.raulrh.tiendatelevisiones.util.Util;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.util.List;
 
 /**
  * Controller responsible for managing supplier-related operations in the application.
@@ -108,6 +114,39 @@ public class SupplierController extends Controller {
 
             mainController.stockController.refreshTable();
         });
+
+        mainController.view.searchSupplier.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterTelevisions();
+            }
+
+            private void filterTelevisions() {
+                String searchText = mainController.view.searchSupplier.getText().trim().toLowerCase();
+                List<Supplier> allSuppliers = mainController.model.getSuppliers();
+                List<Supplier> filteredSuppliers;
+
+                if (searchText.isEmpty()) {
+                    filteredSuppliers = allSuppliers;
+                } else {
+                    filteredSuppliers = allSuppliers.stream()
+                            .filter(supplier -> supplier.getName().toLowerCase().contains(searchText)).toList();
+                }
+
+                supplierTableModel = new SupplierTableModel(filteredSuppliers);
+                mainController.view.suppliersTable.setModel(supplierTableModel);
+            }
+        });
     }
 
     /**
@@ -127,6 +166,25 @@ public class SupplierController extends Controller {
                 fillFields(row);
             } else {
                 clearFields();
+            }
+        });
+
+        mainController.view.suppliersTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (!mainController.isConnected) {
+                    return;
+                }
+
+                if (evt.getClickCount() == 2) {
+                    JTable table = (JTable) evt.getSource();
+                    int row = table.getSelectedRow();
+                    if (row != -1) {
+                        Supplier supplier = supplierTableModel.getSupplier(row);
+                        StockDialog stockDialog = new StockDialog(mainController.view, supplier, mainController.model);
+                        stockDialog.setVisible(true);
+                    }
+                }
             }
         });
     }
